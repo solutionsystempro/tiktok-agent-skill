@@ -129,6 +129,26 @@ class RepoTest(unittest.TestCase):
             with open(path, encoding="utf-8") as fh:
                 self.assertNotIn("—", fh.read(), os.path.relpath(path, ROOT))
 
+    def test_terms_citations_name_the_verified_section_and_version(self):
+        # Verified against the US Terms of Service page, last updated July 15,
+        # 2026: the scraping bullet is in section 3.4 and carries an "except
+        # as approved in writing" exception.
+        cited = 0
+        for path in prose_files():
+            if path.endswith(".py"):
+                continue
+            with open(path, encoding="utf-8") as fh:
+                text = fh.read()
+            if "terms-of-service" not in text:
+                continue
+            cited += 1
+            rel = os.path.relpath(path, ROOT)
+            self.assertIn("section 3.4", text, rel)
+            self.assertIn("July 15, 2026", text, rel)
+            self.assertNotIn("automated scripts to collect", text, rel)
+            self.assertNotRegex(text, r"(?i)section 5\b", rel)
+        self.assertGreaterEqual(cited, 5)
+
     def test_no_scraping_tools_recommended(self):
         banned = re.compile(r"(?i)apify|scrapecreators|playwright|selenium|puppeteer|yt-dlp")
         for path in prose_files():

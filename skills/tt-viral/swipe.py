@@ -122,11 +122,13 @@ BREAKDOWN = ("hook_type", "topic", "structure", "cta")
 
 
 def parse_seconds(cell):
-    """'34', '34s', '34.5 sec', '0:34', '1:02' -> seconds; anything else -> None."""
+    """'34', '34s', '34.5 sec', '0:34', '1:02.5', '1:02:03.25' -> seconds;
+    anything else -> None."""
     s = (cell or "").strip().lower()
-    m = re.fullmatch(r"(\d+):(\d{1,2})(?:\.\d+)?", s)
+    m = re.fullmatch(r"(?:(\d+):)?(\d+):(\d{1,2}(?:\.\d+)?)", s)
     if m:
-        return float(int(m.group(1)) * 60 + int(m.group(2)))
+        hours = int(m.group(1)) if m.group(1) else 0
+        return hours * 3600 + int(m.group(2)) * 60 + float(m.group(3))
     m = re.fullmatch(r"(\d+(?:\.\d+)?)\s*(?:s|sec|secs|seconds)?", s)
     return float(m.group(1)) if m else None
 

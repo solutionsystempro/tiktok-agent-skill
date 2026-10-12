@@ -29,7 +29,7 @@ if `python` is not found.
 ## Collection: what this pack does and does not do
 
 **This pack never scrapes, crawls or automates TikTok**, and it does not drive
-a browser on TikTok. TikTok's US Terms of Service, section 3.4, prohibit
+a browser on TikTok. TikTok's US Terms of Service (version of July 15, 2026), section 3.4, prohibit
 using automated systems or software to scrape, crawl, export or extract data
 or content from the platform, except as approved in writing by TikTok:
 https://www.tiktok.com/legal/page/us/terms-of-service/en
@@ -87,6 +87,8 @@ The full field list, header aliases and JSON shapes are in
 - **Niche fit** 0-100 against `--niche "kw1,kw2"` or the `Niche keywords:`
   line in `~/.claude/tiktok/voice.md` (`--voice` for another path).
 - A trend in only one snapshot says **"one snapshot, no velocity"**.
+- A trend missing from the newest snapshot of its kind and region is
+  **"stale (last seen DATE)"** and never makes the shortlist.
 - **Make this week**: up to five picks that are emerging, rising or peaking
   and fit the niche, each handed to `/tt-hook` then `/tt-script`.
 

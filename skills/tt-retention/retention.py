@@ -166,6 +166,34 @@ def detect(headers):
         "these and run it again.")
 
 
+def hook_point(xs, ys, notes):
+    """Retention at exactly HOOK_SECONDS. Interpolated linearly when samples
+    sit either side of it. If the curve stops before it, the last observed
+    point is used and a note says which second that was. Returns
+    (retention, the second it describes)."""
+    for x, y in zip(xs, ys):
+        if x == HOOK_SECONDS:
+            return y, x
+    before = [(x, y) for x, y in zip(xs, ys) if x < HOOK_SECONDS]
+    after = [(x, y) for x, y in zip(xs, ys) if x > HOOK_SECONDS]
+    if before and after:
+        (x0, y0), (x1, y1) = before[-1], after[0]
+        y = y0 + (y1 - y0) * (HOOK_SECONDS - x0) / (x1 - x0)
+        if x1 - x0 > 1:
+            notes.append(f"retention at {HOOK_SECONDS:g}s interpolated between samples at "
+                         f"{x0:g}s and {x1:g}s")
+        return y, HOOK_SECONDS
+    if before:
+        x, y = before[-1]
+        notes.append(f"the curve ends at {x:g}s, before {HOOK_SECONDS:g}s; the hook leak is "
+                     f"measured through {x:g}s")
+        return y, x
+    x, y = after[0]
+    notes.append(f"the first sample is at {x:g}s, after {HOOK_SECONDS:g}s; no hook leak can be "
+                 "measured")
+    return y, x
+
+
 def analyse_curve(headers, rows, cols, force=None):
     notes, points, skipped = [], [], 0
     for r in rows:
@@ -184,8 +212,7 @@ def analyse_curve(headers, rows, cols, force=None):
     ys = scale([p[1] for p in points], headers[cols["retention"]], force, notes)
     xs = [p[0] for p in points]
     start = ys[0]
-    at_hook = [y for x, y in zip(xs, ys) if x <= HOOK_SECONDS]
-    hook_end = at_hook[-1] if at_hook else start
+    hook_end, hook_to = hook_point(xs, ys, notes)
     drops = []
     for i in range(1, len(xs)):
         span = (xs[i] - xs[i - 1]) or 1.0
@@ -205,6 +232,7 @@ def analyse_curve(headers, rows, cols, force=None):
         "mode": "curve", "points": len(xs), "start": round(start, 2), "end": round(ys[-1], 2),
         "length_seconds": xs[-1],
         "hook_leak": round(start - hook_end, 2), "hook_window": HOOK_SECONDS,
+        "hook_measured_to": round(hook_to, 2),
         "cliffs": sorted(cliffs, key=lambda d: d["from"]),
         "below_50_at": crossing(50.0), "below_25_at": crossing(25.0),
         "thresholds": {"hook_seconds": HOOK_SECONDS, "cliff_points_per_second": CLIFF_PER_SEC},
@@ -280,7 +308,9 @@ def render(a, out=sys.stdout):
               f"{a['end']:.1f}% over {a['length_seconds']:.0f}s", file=out)
         print("=" * 70, file=out)
         print(f"  HOOK LEAK   {a['hook_leak']:.1f} points lost by second "
-              f"{a['hook_window']:.0f}", file=out)
+              f"{a['hook_measured_to']:g}"
+              + ("" if a["hook_measured_to"] == a["hook_window"]
+                 else f" (curve does not reach {a['hook_window']:g}s)"), file=out)
         print("  CLIFFS      steepest drops "
               f"(>= {a['thresholds']['cliff_points_per_second']} points per second)", file=out)
         for c in a["cliffs"]:

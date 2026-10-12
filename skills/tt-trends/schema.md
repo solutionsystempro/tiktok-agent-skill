@@ -94,7 +94,9 @@ order and the first match wins:
    or posts or views shrank faster than -1%/day (`--fading-pct`). A decline
    is checked first, so a falling rank is fading even when posts are flat.
 2. **emerging**: growth at or above 5%/day (`--rising-pct`) and first seen
-   within 7 days of the latest snapshot (`--emerging-days`)
+   within 7 days of the trend's own last sighting (`--emerging-days`). Each
+   trend is judged on its own dates, so other rows in the file do not change
+   it.
 3. **rising**: growth at or above 5%/day, seen for longer than that
 4. **saturated**: 1,000,000 posts or more (`--saturated-posts`) and growth
    below the rising line. High volume, little room left.
@@ -109,6 +111,12 @@ peaking.
 
 A trend found in only one snapshot is labelled `one snapshot` and shows "one
 snapshot, no velocity".
+
+A trend missing from the newest snapshot of its own kind and region is
+labelled `stale (last seen DATE)`, whatever its stage was then, and is left
+out of the "make this week" shortlist. Freshness is judged per kind and
+region, so a sounds list captured a day after the hashtags list does not make
+the hashtags stale.
 
 These thresholds are this pack's defaults, not TikTok figures. Tune them to
 your niche once you have a few weeks of snapshots.

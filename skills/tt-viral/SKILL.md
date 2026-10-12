@@ -82,7 +82,7 @@ each.
 **Rules that are not negotiable:**
 
 - **No scraping, no unofficial APIs, no browser automation, no third-party
-  scraping services.** TikTok's US Terms of Service, section 3.4, prohibit
+  scraping services.** TikTok's US Terms of Service (version of July 15, 2026), section 3.4, prohibit
   automated scraping or extraction of platform data except as approved in
   writing by TikTok: https://www.tiktok.com/legal/page/us/terms-of-service/en
 - The official **Research API** is limited to approved academic and

@@ -75,6 +75,13 @@ class CaptionTest(unittest.TestCase):
         a = caption.analyse(GOOD, onscreen="one two three four five six seven eight nine ten")
         self.assertEqual(check(a, "CARD 1")["status"], "WARN")
 
+    def test_leading_blank_line_is_caught(self):
+        a = caption.analyse("\nActual caption with 3 steps.")
+        self.assertEqual(check(a, "FIRST LINE")["status"], "FAIL")
+        self.assertEqual(check(a, "FIRST LINE")["detail"], "the caption opens on a blank line")
+        self.assertEqual(check(caption.analyse("﻿\r\nActual caption"), "FIRST LINE")["status"],
+                         "FAIL")
+
     def test_empty_caption(self):
         a = caption.analyse("")
         self.assertEqual(a["verdict"], "FIX")

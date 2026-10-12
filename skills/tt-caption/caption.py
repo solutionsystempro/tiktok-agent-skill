@@ -98,7 +98,9 @@ def analyse(text, cut=TRUNCATE, keywords=None, onscreen=None):
     stripped = text.strip()
     points = len(stripped)
     units = utf16_len(stripped)
-    first_line = stripped.split("\n", 1)[0].strip() if stripped else ""
+    # Taken from the raw text, before strip(), so a caption that opens on a
+    # blank line is caught rather than silently tidied.
+    first_line = text.split("\n", 1)[0].strip() if stripped else ""
     tags = HASHTAG_RE.findall(stripped)
     mentions = MENTION_RE.findall(stripped)
     links = LINK_RE.findall(stripped)

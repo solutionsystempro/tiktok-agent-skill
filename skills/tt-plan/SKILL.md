@@ -58,7 +58,7 @@ of their recent videos), views and the hook, by watching on their own phone.
 Building the file by hand works. If the user chooses to use an export from a
 tool they picked, that choice and its compliance are the user's; this pack
 does not name, recommend or run any collector, and never scrapes TikTok
-(TikTok's US Terms of Service, section 3.4:
+(TikTok US Terms of Service, version of July 15, 2026, section 3.4:
 https://www.tiktok.com/legal/page/us/terms-of-service/en).
 
 The breakdown columns (`hook_type`, `topic`, `length_s`, `structure`,

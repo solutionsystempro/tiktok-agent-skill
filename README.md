@@ -132,7 +132,7 @@ performance data, and no tool here predicts views.
 ## Rules this pack keeps
 
 **No scraping, no unofficial APIs, no browser automation of TikTok, no
-scraping services.** TikTok's US Terms of Service, section 3.4, prohibit
+scraping services.** TikTok's US Terms of Service (version of July 15, 2026), section 3.4, prohibit
 using automated systems or software to scrape, crawl, export or extract data
 or content from the platform, except as approved in writing by TikTok:
 <https://www.tiktok.com/legal/page/us/terms-of-service/en>. Data in this pack

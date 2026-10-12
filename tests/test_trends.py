@@ -203,6 +203,45 @@ class NicheTest(unittest.TestCase):
         self.assertEqual([x["name"] for x in trends.shortlist(a)], ["sourdoughtok"])
 
 
+class FreshnessTest(unittest.TestCase):
+    TEXT = ("captured_at,kind,name,posts,region\n"
+            "2026-09-01,hashtag,oldrise,1000,US\n"
+            "2026-09-05,hashtag,oldrise,2000,US\n"
+            "2026-09-05,hashtag,sourdoughnow,100,US\n"
+            "2026-10-08,hashtag,sourdoughnow,300,US\n")
+
+    def test_trend_absent_from_newest_snapshot_is_stale_and_excluded(self):
+        a = trends.analyse(rows(self.TEXT), keywords=["sourdough", "oldrise"])
+        by = {t["name"]: t for t in a["trends"]}
+        old = by["oldrise"]
+        self.assertTrue(old["stale"])
+        self.assertEqual(old["stage"], "stale (last seen 2026-09-05)")
+        self.assertEqual(old["stage_when_last_seen"], "emerging")
+        self.assertNotIn("oldrise", [x["name"] for x in trends.shortlist(a)])
+        self.assertFalse(by["sourdoughnow"]["stale"])
+
+    def test_emerging_uses_the_trends_own_dates(self):
+        base = ("captured_at,kind,name,posts,region\n"
+                "2026-09-01,sound,newsound,1000,US\n"
+                "2026-09-05,sound,newsound,2000,US\n")
+        alone = trends.analyse(rows(base))["trends"][0]
+        self.assertEqual(alone["stage"], "emerging")
+        # A much newer row of another kind must not change it.
+        mixed = trends.analyse(rows(base + "2026-12-01,hashtag,other,10,US\n"))
+        x = next(t for t in mixed["trends"] if t["name"] == "newsound")
+        self.assertEqual(x["stage"], "emerging")
+        self.assertFalse(x["stale"])
+
+    def test_cli_prints_stale_note(self):
+        path = temp_file(self.TEXT, suffix=".csv")
+        try:
+            out = run_cli("tt-trends", "trends.py", path).stdout.decode("utf-8")
+            self.assertIn("stale (last seen 2026-09-05)", out)
+            self.assertIn("left out of MAKE THIS WEEK", out)
+        finally:
+            os.remove(path)
+
+
 class CliTest(unittest.TestCase):
     def test_outputs(self):
         path = temp_file(CSV, suffix=".csv")

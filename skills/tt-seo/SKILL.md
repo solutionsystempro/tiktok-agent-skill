@@ -97,8 +97,10 @@ Nothing is fetched. Every question comes from the user.
 
 ## Rules
 
-- **No scraping, no unofficial APIs, no browser automation.** TikTok's Terms of
-  Service, section 3.4, prohibit scraping or extracting data from the platform:
+- **No scraping, no unofficial APIs, no browser automation.** TikTok's US
+  Terms of Service (version of July 15, 2026), section 3.4, prohibit using
+  automated systems or software to scrape, crawl, export or extract data or
+  content from the platform, except as approved in writing by TikTok:
   https://www.tiktok.com/legal/page/us/terms-of-service/en
 - **Do not stuff.** One primary phrase said naturally beats five crammed into
   one caption.

@@ -100,6 +100,18 @@ class BreakdownTest(unittest.TestCase):
         self.assertIn("structure (8 filled): tutorial x3", md)
 
 
+class ParseSecondsTest(unittest.TestCase):
+    def test_fractions_are_kept(self):
+        self.assertEqual(swipe.parse_seconds("1:02.5"), 62.5)
+        self.assertEqual(swipe.parse_seconds("0:34"), 34.0)
+        self.assertEqual(swipe.parse_seconds("1:02:03.25"), 3723.25)
+        self.assertEqual(swipe.parse_seconds("34.5s"), 34.5)
+
+    def test_bad_values(self):
+        for bad in ("", None, "1:2:3:4", "1:75x", "a minute"):
+            self.assertIsNone(swipe.parse_seconds(bad), bad)
+
+
 class SwipeTest(unittest.TestCase):
     def test_ranks_by_multiple_not_views(self):
         a = swipe.analyse(rows_of(TSV), swipe.load_formulas(swipe.HOOKS))

@@ -50,6 +50,33 @@ class RetentionCurveTest(unittest.TestCase):
         self.assertTrue(any("skipped" in n for n in a["notes"]))
 
 
+class HookPointTest(unittest.TestCase):
+    def test_sparse_curve_is_interpolated_at_three_seconds(self):
+        a = retention.analyse_text("Time,Viewers (%)\n0,100\n5,50\n10,40\n")
+        self.assertEqual(a["hook_leak"], 30.0)               # 100 -> 70 at 3s
+        self.assertEqual(a["hook_measured_to"], 3.0)
+        self.assertTrue(any("interpolated" in n for n in a["notes"]))
+
+    def test_exact_sample_at_three_seconds(self):
+        a = retention.analyse_text("Time,Viewers (%)\n0,100\n3,64\n5,50\n")
+        self.assertEqual(a["hook_leak"], 36.0)
+        self.assertFalse(any("interpolated" in n for n in a["notes"]))
+
+    def test_curve_that_ends_before_three_seconds(self):
+        a = retention.analyse_text("Time,Viewers (%)\n0,100\n1,90\n2.5,75\n")
+        self.assertEqual(a["hook_leak"], 25.0)
+        self.assertEqual(a["hook_measured_to"], 2.5)
+        self.assertTrue(any("ends at 2.5s" in n for n in a["notes"]))
+
+    def test_render_names_the_last_second(self):
+        path = temp_file("Time,Viewers (%)\n0,100\n2.5,75\n", suffix=".csv")
+        try:
+            out = run_cli("tt-retention", "retention.py", path).stdout.decode("utf-8")
+            self.assertIn("lost by second 2.5 (curve does not reach 3s)", out)
+        finally:
+            os.remove(path)
+
+
 class RetentionSummaryTest(unittest.TestCase):
     def test_ranks_by_completion_with_mixed_time_formats(self):
         a = retention.analyse_text(SUMMARY)

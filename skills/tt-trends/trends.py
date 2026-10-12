@@ -72,7 +72,7 @@ THRESHOLDS = {
     "peak_pct": 1.0,            # at or above this (and below rising) is peaking
     "fading_pct": -1.0,         # below this is fading
     "saturated_posts": 1_000_000,  # this many posts or more, growing below rising: saturated
-    "emerging_days": 7,         # rising and first seen within this many days of the latest snapshot
+    "emerging_days": 7,         # rising, and first seen within this many days of its own last sighting
     "rank_rising": 1.0,         # rank-only data: places climbed per day for rising
 }
 STAGE_WEIGHT = {"emerging": 4, "rising": 3, "peaking": 2, "saturated": 1, "stalled": 1,
@@ -302,7 +302,7 @@ def growth_pct(prev, last, days):
     return (last - prev) / prev * 100 / days
 
 
-def stage_for(g, rank_per_day, posts, first_seen, latest, t, views_g=None):
+def stage_for(g, rank_per_day, posts, first_seen, last_seen, t, views_g=None):
     """Stage from growth % per day g (posts, else views), else from rank.
 
     Order matters. Any decline is checked first: a rank falling by at least
@@ -316,7 +316,7 @@ def stage_for(g, rank_per_day, posts, first_seen, latest, t, views_g=None):
         return "fading"
     if any(x is not None and x < t["fading_pct"] for x in (g, views_g)):
         return "fading"
-    new = (latest - first_seen).days <= t["emerging_days"]
+    new = (last_seen - first_seen).days <= t["emerging_days"]
     if g is not None:
         if g >= t["rising_pct"]:
             return "emerging" if new else "rising"
@@ -335,6 +335,12 @@ def analyse(rows, keywords=None, thresholds=None):
     if not rows:
         return {"trends": [], "thresholds": t, "snapshots": [], "keywords": keywords or []}
     latest = max(r["captured_at"] for r in rows)
+    # Freshness is judged per kind and region, so a sounds list captured a
+    # day after the hashtags list does not make every hashtag stale.
+    newest = {}
+    for r in rows:
+        k = (r["kind"], r["region"])
+        newest[k] = max(newest.get(k, r["captured_at"]), r["captured_at"])
     groups = {}
     for r in rows:
         groups.setdefault((r["kind"], r["key"], r["region"]), {})[r["captured_at"]] = r
@@ -366,11 +372,17 @@ def analyse(rows, keywords=None, thresholds=None):
             g = item["posts_growth_pct"] if item["posts_growth_pct"] is not None \
                 else item["views_growth_pct"]
             item["stage"] = stage_for(g, item["rank_change_per_day"], last["posts"],
-                                      dates[0], latest, t,
+                                      dates[0], dates[-1], t,
                                       views_g=item["views_growth_pct"]) or "one snapshot"
             item["velocity"] = f"over {days} day(s), {dates[-2]} to {dates[-1]}"
             if item["stage"] == "one snapshot":
                 item["velocity"] = "no comparable rank, posts or views between snapshots"
+        item["stale"] = dates[-1] < newest[(kind, region)]
+        if item["stale"]:
+            # Not in the newest snapshot of its own list: whatever it was doing
+            # then, it is not evidence about this week.
+            item["stage_when_last_seen"] = item["stage"]
+            item["stage"] = f"stale (last seen {dates[-1].isoformat()})"
         item["fit"] = niche_fit(item["name"], keywords)
         growth = item["posts_growth_pct"] if item["posts_growth_pct"] is not None \
             else (item["views_growth_pct"] or 0)
@@ -389,7 +401,7 @@ def analyse(rows, keywords=None, thresholds=None):
 
 def shortlist(a, n=5):
     good = {"emerging", "rising", "peaking"}
-    picks = [x for x in a["trends"] if x["stage"] in good
+    picks = [x for x in a["trends"] if x["stage"] in good and not x.get("stale")
              and (x["fit"] is None or x["fit"] >= 60)]
     return picks[:n]
 
@@ -420,7 +432,7 @@ def by_kind(a, kind_filter=None, top=10):
 def threshold_line(t):
     return (f"fading first: rank down >= {t['rank_rising']} places/day or posts/views < "
             f"{t['fading_pct']}%/day; then rising >= {t['rising_pct']}%/day (emerging if first "
-            f"seen within {t['emerging_days']} days), saturated = {fmt(t['saturated_posts'])}+ "
+            f"seen within {t['emerging_days']} days of its last sighting), saturated = {fmt(t['saturated_posts'])}+ "
             f"posts below rising, peaking >= {t['peak_pct']}%/day, stalled = flat at lower "
             f"volume; rank-only rising >= {t['rank_rising']} places/day")
 
@@ -441,11 +453,14 @@ def render(a, kind_filter=None, top=10, out=sys.stdout):
             rcd = "-" if x["rank_change_per_day"] is None else f"{x['rank_change_per_day']:+g}"
             gp = "-" if x["posts_growth_pct"] is None else f"{x['posts_growth_pct']:+.1f}"
             region = f" [{x['region']}]" if x["region"] else ""
-            print(f"  {x['stage']:<13}{fit:>4}  {fmt(x['rank']):>5} {rcd:>8} "
+            print(f"  {x['stage'][:13]:<13}{fit:>4}  {fmt(x['rank']):>5} {rcd:>8} "
                   f"{fmt(x['posts']):>8} {gp:>9}  {x['first_seen']:<10}  "
                   f"{x['name'][:34]}{region}", file=out)
             if x["stage"] == "one snapshot":
                 print(f"  {'':<13}     {x['velocity']}", file=out)
+            if x.get("stale"):
+                print(f"  {'':<13}     {x['stage']}, not in the newest {x['kind']} snapshot; "
+                      "left out of MAKE THIS WEEK", file=out)
     picks = shortlist(a)
     print("\n  MAKE THIS WEEK", file=out)
     if not picks:
