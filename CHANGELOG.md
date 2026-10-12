@@ -38,6 +38,24 @@ Twelve: `tt-hook`, `tt-script`, `tt-caption`, `tt-seo`, `tt-trends`,
   with a TikTok block of phrases and structural tells. `humanize.py` also no
   longer leaves "tools.!" when a deleted closer ended in "!" or "?".
 
+### 30-day batch workflow
+
+- `tt-plan` is a 30-day batch: five creators, ten best posts each as a
+  50-row swipe file, breakdown, question research, 30 scripts, a filming-day
+  sheet grouped by set, outfit and location for one 1 to 2 hour session, a
+  30-day calendar and a daily engagement checklist the user does by hand.
+  Output goes in `~/.claude/tiktok/month-YYYY-MM/`, from `templates/month.md`.
+- `swipe.py`: breakdown columns (`hook_type`, `topic`, `length_s`,
+  `structure`, `cta`) with header aliases, and an aggregation across the
+  batch: most common values, median length, and what the top quartile by
+  outperformance shares more than the batch. `swipe.tsv` header template.
+- `questions.py`: new. Clusters pasted questions by shared topic word and
+  maps each cluster to script ideas.
+- `crosspost.py`: new. Checks a per-video pack: TikTok caption (2,200 UTF-16
+  units), Shorts title (100 characters) and description (5,000 bytes) from
+  the YouTube Data API, and Reels caption (2,200 characters, 5 hashtags, as in
+  instagram-agent-skill, unverified here).
+
 ### Tests
 
 Standard-library `unittest` suite for every tool plus repo checks.

@@ -2,10 +2,10 @@
 name: tt-repurpose
 description: >-
   Turn a YouTube Short, Instagram Reel or long video transcript into a
-  TikTok-native version: reworked three-layer hook, new length and beat
-  sheet, on-screen text, caption and search phrase. Use when the user wants
-  to repost or adapt existing video content for TikTok, or cut a long video
-  transcript into TikToks.
+  TikTok-native version (reworked three-layer hook, new length, on-screen
+  text, caption), and write a per-video cross-post pack checked by
+  crosspost.py. Use when the user wants to adapt existing video content for
+  TikTok, cut a long transcript into TikToks, or cross-post a TikTok.
 license: MIT
 metadata:
   maintainer: Ian Ryan Kirk
@@ -55,6 +55,22 @@ rights to. Do not download videos from any platform on the user's behalf.
 4. Flag any moment that only works with the long video's context. It is not a
    TikTok yet.
 
+## Cross-post pack, per video
+
+Repurposing runs both ways. For every finished video, write one pack file
+with a TikTok caption, a YouTube Shorts title and description, and an
+Instagram Reels caption, each written for its own platform, then check it
+with the tool in `tt-caption`:
+
+```bash
+python "${CLAUDE_SKILL_DIR}/../tt-caption/crosspost.py" pack.txt
+```
+
+The format and the limits it checks (verified for TikTok and YouTube,
+unverified for Instagram) are in `/tt-caption`. Remove mentions of the other
+platforms from each version, and export each upload without another
+platform's watermark.
+
 ## Output
 
 ```
@@ -67,6 +83,7 @@ TIKTOK VERSION
   length:    22.6s (was 34s), cut the 6s intro and the "follow for part 2" ending
   cards:     4
   caption:   ready, linter READY
+  crosspost: TikTok / Shorts title + description / Reels, crosspost.py READY
   removed:   "link in bio on Instagram", 2 hashtags from the original
 ```
 

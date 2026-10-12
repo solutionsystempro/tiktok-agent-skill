@@ -55,7 +55,29 @@ the user watches on their own phone and writes down, per video:
 
 Tab- or comma-separated with a header row. `412K`, `1.2M`, `1,2M` and
 `412,000` all parse. A cell that is not a count is reported and the row is
-skipped or the field ignored, never guessed.
+skipped or the field ignored, never guessed. A header-only template is in
+`${CLAUDE_SKILL_DIR}/swipe.tsv`.
+
+### Breakdown columns
+
+Five optional columns turn the ranking into a breakdown. The user fills them
+in while watching, or you fill them from a transcript the user pastes. Never
+guess them from a thumbnail or a title.
+
+| column | what goes in it |
+| --- | --- |
+| hook_type | the kind of opening, ideally a `tt-hook/hooks.json` name. Blank: the classified formula is used |
+| topic | a short topic label, reused consistently across rows |
+| length_s | seconds: `34`, `34s` or `0:34` |
+| structure | list, story, myth-bust, tutorial, reaction, comparison, ... |
+| cta | the ask at the end: follow, comment keyword, part 2, save, none |
+
+The report then aggregates across the batch: the most common hook types,
+topics, structures and CTAs, the median length, and which values the **top
+quartile by outperformance** shares more than the batch overall (a value has
+to appear in at least two top-quartile posts to count). For the 30-day
+workflow in `/tt-plan`, this runs on 50 posts: five creators, ten best posts
+each.
 
 **Rules that are not negotiable:**
 

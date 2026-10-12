@@ -1,11 +1,11 @@
 ---
 name: tt-seo
 description: >-
-  TikTok search keyword research from phrases the user pastes: TikTok search
-  suggestions, "others searched for", related searches and TikTok Creative
-  Center keyword lists, turned into a keyword map by kwmap.py with where each
-  phrase goes. Use when the user wants TikTok SEO, TikTok search keywords, or
-  wants their TikToks found in TikTok search. No scraping.
+  TikTok search keyword and question research from what the user pastes:
+  search suggestions, keyword lists and questions, turned into a keyword map
+  by kwmap.py and question clusters with script ideas by questions.py. Use
+  when the user wants TikTok SEO, TikTok search keywords, or wants to know what
+  questions to answer in TikToks. No scraping.
 license: MIT
 metadata:
   maintainer: Ian Ryan Kirk
@@ -21,6 +21,7 @@ it goes.
 ```bash
 python "${CLAUDE_SKILL_DIR}/kwmap.py" pasted.txt --seed "sourdough"
 python "${CLAUDE_SKILL_DIR}/kwmap.py" keywords.csv --json
+python "${CLAUDE_SKILL_DIR}/questions.py" questions.txt --seed "sourdough"
 ```
 
 `${CLAUDE_SKILL_DIR}` is this skill's folder. On macOS or Linux, use `python3`
@@ -67,6 +68,32 @@ sourdough discard recipes
 The ranking is from what was pasted (how many lists, how many mentions, how
 many other phrases contain it), or from a volume column if the pasted table
 has one. It is not TikTok search volume and the output says so.
+
+## Question research
+
+Questions are the most direct script ideas there are: someone already typed
+the hook. Ask the user to paste questions about the topic from:
+
+- TikTok search suggestions that are questions
+- "People also ask" boxes in a web search
+- Q&A sites and forum threads on the topic, read by hand
+- comments under the user's own videos
+
+One per line, with `# source` lines between lists, then:
+
+```bash
+python "${CLAUDE_SKILL_DIR}/questions.py" questions.txt --seed "sourdough"
+```
+
+It merges near-duplicates, clusters the rest by their most widely shared
+topic word (the `--seed` words are ignored for this, or every question would
+land in one cluster), and maps each cluster to script ideas: one video per
+question (hook formula #5, The Typed Question) and, for clusters of three or
+more, a round-up video (formula #6, Numbered Lessons). The clustering is word
+overlap, not meaning, so read the clusters and move a question if it landed
+in the wrong one.
+
+Nothing is fetched. Every question comes from the user.
 
 ## Rules
 

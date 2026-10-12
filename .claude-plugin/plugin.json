@@ -1,6 +1,6 @@
 {
   "name": "tiktok-agent",
-  "description": "Twelve Claude skills for TikTok: three-layer hooks (spoken, on-screen, first visual) scored against 20 formulas, timed scripts, a caption linter that counts UTF-16 units, keyword maps from pasted search suggestions, a manual trend workflow with a snapshot analyser, retention from TikTok Studio exports, a swipe-file ranker, comment reply drafts, repurposing, a profile rubric, a weekly plan and a humanizer. No scraping, nothing posted for you.",
+  "description": "Twelve Claude skills for TikTok, built around a 30-day batch: research five creators' best posts, cluster the questions people ask, write 30 scripts with three-layer hooks (spoken, on-screen, first visual), film them in one session and post on a calendar. Also a caption linter that counts UTF-16 units, a cross-post checker for Shorts and Reels, a trend snapshot analyser, a TikTok Studio retention reader, comment reply drafts, a profile rubric and a humanizer. No scraping, nothing posted for you.",
   "version": "1.0.0",
   "author": {
     "name": "Ian Ryan Kirk",

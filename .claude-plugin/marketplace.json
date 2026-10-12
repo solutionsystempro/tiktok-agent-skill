@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "tiktok-agent",
-      "description": "Twelve Claude skills for TikTok, including a three-layer hook scorer, a caption linter, a trend snapshot analyser, a retention reader and a humanizer. No scraping, nothing posted for you.",
+      "description": "Twelve Claude skills for TikTok, built around a 30-day batch workflow, with a three-layer hook scorer, a caption and cross-post linter, a trend snapshot analyser, a retention reader and a humanizer. No scraping, nothing posted for you.",
       "source": "./",
       "version": "1.0.0",
       "category": "productivity",
