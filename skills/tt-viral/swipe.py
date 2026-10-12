@@ -21,6 +21,23 @@ Counts can be written the way TikTok shows them: 412K, 1.2M, 1,2M, 12.5k.
 A cell that is not a count (for example "lots") is treated as missing and the
 row is reported, not guessed at.
 
+Optional breakdown columns, filled in by you or from the transcript:
+
+    hook_type   the kind of opening, in your words or a hooks.json name
+                (blank: the classified formula name is used)
+    topic       what the video is about, a short label
+    length_s    length in seconds: 34, 34s or 0:34
+    structure   list, story, myth-bust, tutorial, reaction, ...
+    cta         the ask at the end: follow, comment keyword, part 2, none
+
+With those, the report aggregates the batch: the most common hook types,
+topics, structures and CTAs, the median length, and which values the top
+quartile by outperformance shares more than the batch as a whole.
+
+Header aliases: creator / handle -> account, hook_text -> hook,
+type -> hook_type, length / seconds / duration -> length_s, ask -> cta,
+format -> structure.
+
 Usage
   python swipe.py captured.tsv
   python swipe.py captured.csv --out ~/.claude/tiktok/swipe.md
@@ -93,6 +110,31 @@ def parse_count(cell):
     return int(round(num * mult))
 
 
+HEADER_ALIASES = {
+    "creator": "account", "handle": "account", "username": "account",
+    "hook_text": "hook", "hook text": "hook", "first line": "hook",
+    "type": "hook_type", "hook type": "hook_type",
+    "length": "length_s", "seconds": "length_s", "duration": "length_s", "length (s)": "length_s",
+    "ask": "cta", "call to action": "cta",
+    "format": "structure",
+}
+BREAKDOWN = ("hook_type", "topic", "structure", "cta")
+
+
+def parse_seconds(cell):
+    """'34', '34s', '34.5 sec', '0:34', '1:02' -> seconds; anything else -> None."""
+    s = (cell or "").strip().lower()
+    m = re.fullmatch(r"(\d+):(\d{1,2})(?:\.\d+)?", s)
+    if m:
+        return float(int(m.group(1)) * 60 + int(m.group(2)))
+    m = re.fullmatch(r"(\d+(?:\.\d+)?)\s*(?:s|sec|secs|seconds)?", s)
+    return float(m.group(1)) if m else None
+
+
+def label(value):
+    return re.sub(r"\s+", " ", (value or "").strip().lower())
+
+
 def read_rows(text):
     """Returns (rows, problems). Header row required: it must name views and hook."""
     text = (text or "").lstrip("﻿").replace("\r\n", "\n").replace("\r", "\n")
@@ -102,6 +144,7 @@ def read_rows(text):
     delim = "\t" if "\t" in lines[0] else ","
     table = list(csv.reader(io.StringIO("\n".join(lines)), delimiter=delim))
     head = [c.strip().lower() for c in table[0]]
+    head = [HEADER_ALIASES.get(h, h) for h in head]
     if "views" not in head or "hook" not in head:
         raise ValueError(f"header must name at least 'views' and 'hook'. Found: "
                          f"{', '.join(head) or 'nothing'}")
@@ -120,8 +163,62 @@ def read_rows(text):
             r[k] = parse_count(raw)
             if raw and r[k] is None:
                 problems.append(f"line {n}: {k} \"{raw}\" is not a count, ignored")
+        raw_len = r.get("length_s")
+        r["length_s"] = parse_seconds(raw_len)
+        if raw_len and r["length_s"] is None:
+            problems.append(f"line {n}: length_s \"{raw_len}\" is not a number of seconds, ignored")
+        for k in BREAKDOWN:
+            r[k] = label(r.get(k))
         rows.append(r)
     return rows, problems
+
+
+def tally(items, key):
+    counts = {}
+    for r in items:
+        v = r.get(key)
+        if v and v != "unclassified":
+            counts[v] = counts.get(v, 0) + 1
+    return sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
+
+
+def breakdown(ranked):
+    """Aggregate the breakdown fields across the batch, and compare the top
+    quartile by outperformance against the whole batch.
+
+    A value 'stands out' in the top quartile when it appears in at least two
+    top-quartile posts (or the only one, for a quartile of one) and its share
+    there is higher than its share of the whole batch."""
+    for r in ranked:
+        r["hook_type_used"] = r.get("hook_type") or (
+            label(r["formula"]) if r.get("formula") not in (None, "unclassified") else "")
+    scored = [r for r in ranked if r.get("outlier")]
+    q = max(1, -(-len(scored) // 4)) if scored else 0          # ceil(n / 4)
+    top = scored[:q]
+    out = {"posts": len(ranked), "top_quartile_size": q, "fields": {}}
+    for key, name in (("hook_type_used", "hook_type"), ("topic", "topic"),
+                      ("structure", "structure"), ("cta", "cta")):
+        everyone = tally(ranked, key)
+        filled = sum(1 for r in ranked if r.get(key))
+        top_counts = dict(tally(top, key))
+        top_filled = sum(1 for r in top if r.get(key))
+        stands_out = []
+        for value, n_top in sorted(top_counts.items(), key=lambda kv: (-kv[1], kv[0])):
+            share_top = n_top / top_filled if top_filled else 0
+            share_all = dict(everyone)[value] / filled if filled else 0
+            if (n_top >= 2 or q == 1) and share_top > share_all:
+                stands_out.append({"value": value, "top": n_top, "top_share": round(share_top, 2),
+                                   "all_share": round(share_all, 2)})
+        out["fields"][name] = {"filled": filled, "most_common": everyone[:5],
+                               "top_quartile": sorted(top_counts.items(),
+                                                      key=lambda kv: (-kv[1], kv[0]))[:5],
+                               "stands_out": stands_out}
+    lengths = [r["length_s"] for r in ranked if r.get("length_s") is not None]
+    top_lengths = [r["length_s"] for r in top if r.get("length_s") is not None]
+    out["median_length_s"] = round(statistics.median(lengths), 1) if lengths else None
+    out["top_quartile_median_length_s"] = (round(statistics.median(top_lengths), 1)
+                                           if top_lengths else None)
+    return out
 
 
 def analyse(rows, formulas):
@@ -171,7 +268,26 @@ def analyse(rows, formulas):
         "top_words": med(top, "words"),
         "bottom_words": med(bottom, "words"),
         "unclassified": sum(1 for r in ranked if r["formula"] == "unclassified"),
+        "breakdown": breakdown(ranked),
     }
+
+
+def breakdown_lines(b):
+    """Plain-text lines for the breakdown, shared by the console and markdown."""
+    lines = [f"top quartile = {b['top_quartile_size']} of {b['posts']} posts by multiple"]
+    for name, f in b["fields"].items():
+        if not f["filled"]:
+            lines.append(f"{name}: not filled in")
+            continue
+        common = ", ".join(f"{v} x{c}" for v, c in f["most_common"])
+        lines.append(f"{name} ({f['filled']} filled): {common}")
+        for s in f["stands_out"]:
+            lines.append(f"  top quartile leans {name} = {s['value']}: {s['top']} posts, "
+                         f"{s['top_share']:.0%} of the top vs {s['all_share']:.0%} overall")
+    if b["median_length_s"] is not None:
+        lines.append(f"median length: {b['median_length_s']}s overall, "
+                     f"{b['top_quartile_median_length_s']}s in the top quartile")
+    return lines
 
 
 def render(a, out=sys.stdout):
@@ -200,6 +316,9 @@ def render(a, out=sys.stdout):
           f"vs bottom {a['bottom_words']} words", file=out)
     print(f"  unclassified:          {a['unclassified']} of {a['n']}. Read those by hand.",
           file=out)
+    print("BREAKDOWN", file=out)
+    for line in breakdown_lines(a["breakdown"]):
+        print(f"  {line}", file=out)
     print("\n  A hand-collected batch is a sample, not proof. Collect more before you "
           "believe a pattern.\n", file=out)
 
@@ -217,7 +336,14 @@ def to_markdown(a):
                   f"- views: {r['views']:,}  baseline: {r['baseline']:,} "
                   f"({SOURCE_LABEL.get(r['baseline_source'], 'none')})",
                   f"- spoken-hook score: {r['hook_score']}  words: {r['words']}",
-                  f"- hook: \"{r['hook']}\"", ""]
+                  f"- hook: \"{r['hook']}\""]
+        extra = [f"{k}: {r[k]}" for k in ("hook_type", "topic", "structure", "cta") if r.get(k)]
+        if r.get("length_s") is not None:
+            extra.append(f"length: {r['length_s']:g}s")
+        if extra:
+            lines.append("- " + "  ".join(extra))
+        lines.append("")
+    lines += ["## Breakdown", ""] + [f"- {l}" for l in breakdown_lines(a["breakdown"])]
     return "\n".join(lines) + "\n"
 
 

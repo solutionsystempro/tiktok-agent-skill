@@ -33,6 +33,73 @@ class ParseCountTest(unittest.TestCase):
             self.assertIsNone(swipe.parse_count(bad), bad)
 
 
+BREAKDOWN_TSV = (
+    "creator\tmedian\tviews\thook\ttype\ttopic\tlength\tstructure\tcta\n"
+    "@a\t1000\t20000\tPOV: your starter doubled\t\tstarter\t0:21\tStory\tfollow\n"
+    "@b\t1000\t15000\tRanking every flour\tranking\tflour\t34s\tlist\tcomment keyword\n"
+    "@c\t1000\t9000\tEveryone says rinse rice\tmyth\trice\t40\tmyth-bust\tnone\n"
+    "@d\t1000\t8000\tMy landlord just texted\t\tstarter\t25\tstory\tfollow\n"
+    "@e\t1000\t3000\tLook at this bread\t\tbread\t60\ttutorial\tnone\n"
+    "@f\t1000\t2000\tHere is my bread\t\tbread\tabout a minute\ttutorial\tnone\n"
+    "@g\t1000\t1500\tToday we bake\t\tbread\t55\ttutorial\tfollow\n"
+    "@h\t1000\t1000\tBaking again\t\tstarter\t50\tlist\tnone\n"
+)
+
+
+class BreakdownTest(unittest.TestCase):
+    def setUp(self):
+        rows, self.problems = swipe.read_rows(BREAKDOWN_TSV)
+        self.a = swipe.analyse(rows, swipe.load_formulas(swipe.HOOKS))
+        self.b = self.a["breakdown"]
+
+    def test_aliases_and_length_parsing(self):
+        first = self.a["videos"][0]
+        self.assertEqual(first["account"], "@a")
+        self.assertEqual(first["length_s"], 21.0)
+        self.assertEqual(first["structure"], "story")             # case folded
+        self.assertTrue(any("about a minute" in p for p in self.problems))
+
+    def test_top_quartile_and_most_common(self):
+        self.assertEqual(self.b["posts"], 8)
+        self.assertEqual(self.b["top_quartile_size"], 2)
+        structure = self.b["fields"]["structure"]
+        self.assertEqual(structure["most_common"][0], ("tutorial", 3))
+        self.assertEqual(dict(structure["top_quartile"]), {"story": 1, "list": 1})
+
+    def test_blank_hook_type_falls_back_to_formula(self):
+        hook_types = dict(self.b["fields"]["hook_type"]["most_common"])
+        self.assertEqual(hook_types.get("point of view"), 1)
+        self.assertEqual(hook_types.get("ranking"), 1)
+
+    def test_stands_out_needs_two_top_posts_and_a_higher_share(self):
+        # top two are @a (starter, follow) and @b (flour, comment keyword): nothing
+        # appears twice in the top quartile, so nothing stands out.
+        for f in self.b["fields"].values():
+            self.assertEqual(f["stands_out"], [])
+        rows, _ = swipe.read_rows(BREAKDOWN_TSV.replace("comment keyword", "follow")
+                                  .replace("\tflour\t", "\tstarter\t"))
+        b = swipe.analyse(rows, None)["breakdown"]
+        cta = b["fields"]["cta"]["stands_out"]
+        self.assertEqual([s["value"] for s in cta], ["follow"])
+        self.assertEqual(cta[0]["top_share"], 1.0)
+        self.assertEqual(cta[0]["all_share"], round(4 / 8, 2))
+
+    def test_median_lengths(self):
+        self.assertEqual(self.b["median_length_s"], 40.0)        # 21,34,40,25,60,55,50
+        self.assertEqual(self.b["top_quartile_median_length_s"], 27.5)
+
+    def test_empty_breakdown_fields(self):
+        b = swipe.analyse(swipe.read_rows("views\thook\n5000\tone\n")[0], None)["breakdown"]
+        self.assertEqual(b["fields"]["topic"]["filled"], 0)
+        self.assertIsNone(b["median_length_s"])
+        self.assertEqual(b["top_quartile_size"], 0)
+
+    def test_markdown_includes_breakdown(self):
+        md = swipe.to_markdown(self.a)
+        self.assertIn("## Breakdown", md)
+        self.assertIn("structure (8 filled): tutorial x3", md)
+
+
 class SwipeTest(unittest.TestCase):
     def test_ranks_by_multiple_not_views(self):
         a = swipe.analyse(rows_of(TSV), swipe.load_formulas(swipe.HOOKS))
