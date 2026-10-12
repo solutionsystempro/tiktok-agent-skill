@@ -1,0 +1,235 @@
+{
+  "version": "1.0",
+  "license": "Copyright (c) 2026 Ian Ryan Kirk. MIT License.",
+  "note": "20 hook formulas for TikTok, written for this pack. A TikTok hook is three layers that land in the same one to three seconds: the spoken line, the text on screen, and the first visual. Each formula carries all three, plus what it is for, how it usually goes wrong, and a `match` regex so swipe.py can name a hook found in the wild. Walk them in `classify_order`, most specific first, case-insensitive. These are starting shapes, not evidence: nothing here was measured against TikTok performance data.",
+  "rules": [
+    "Write the three layers separately. The spoken line, the on-screen line and the first frame each do a different job, and copying one into the other wastes a layer.",
+    "The first frame should already be moving or already show the result. A still face waiting to talk is a layer left empty.",
+    "On-screen text is read before the audio registers for anyone watching muted. Keep it to about six words.",
+    "Say the specific thing: the number, the object, the place. A hook any creator in your niche could say is not yours yet.",
+    "Pay off the promise early. A hook that holds the payoff hostage until the last second tends to get skipped by the second viewing."
+  ],
+  "hooks": [
+    {
+      "id": 1,
+      "name": "Price Tag",
+      "template": "This {thing} cost {amount}. Here is what that actually buys you.",
+      "example": "This chair cost $1,400. Here is what that actually buys you.",
+      "on_screen": "$1,400 CHAIR. WORTH IT?",
+      "first_visual": "Hand slaps the price sticker onto the chair.",
+      "best_for": "Product, money and value niches. A price is the fastest concrete thing a viewer can judge.",
+      "trap": "A price with no reveal attached. The number opens a question the video has to answer.",
+      "match": "\\b(?:cost|costs|costing|paid|spent)\\b[^.!?]{0,30}(?:\\$\\s?\\d|\\d[\\d,]*\\s?(?:dollars|bucks|k\\b))|\\$\\s?\\d[\\d,]*\\s+(?:for|on)\\b"
+    },
+    {
+      "id": 2,
+      "name": "Mid-Action Start",
+      "template": "{Step number or stage}, and this is where most people {give up / get it wrong}.",
+      "example": "Third coat of paint, and this is where most people give up.",
+      "on_screen": "COAT 3 OF 4",
+      "first_visual": "Brush already mid-stroke on the wall.",
+      "best_for": "Process, craft and tutorial content. Starting in the middle skips the setup nobody waits for.",
+      "trap": "Starting mid-action and then cutting back to the beginning. Stay in the middle and move forward.",
+      "match": "\\bthis is where (?:most|everyone|people|you)\\b|^\\s*(?:step|stage|day|coat|round|part)\\s+(?:\\d+|one|two|three|four|five)\\b"
+    },
+    {
+      "id": 3,
+      "name": "The Wrong Way",
+      "template": "If you {do the common thing} like this, {specific consequence}.",
+      "example": "If you load your dishwasher like this, half your plates never get clean.",
+      "on_screen": "YOU'RE LOADING IT WRONG",
+      "first_visual": "Close-up of the wrong version, already in progress.",
+      "best_for": "Everyday habits the viewer recognises in themselves. Comments argue, which keeps the video in circulation.",
+      "trap": "A wrong way nobody actually does. The viewer has to see their own habit on screen.",
+      "match": "^\\s*if you(?:'re)?\\b[^.!?]{0,60}\\blike this\\b|\\byou(?:'re| are)? (?:doing|using|loading|holding|cooking|washing) [^.!?]{0,30}\\bwrong\\b"
+    },
+    {
+      "id": 4,
+      "name": "Result Up Front",
+      "template": "This is what {amount of effort} of {practice} looks like.",
+      "example": "This is what 200 days of daily sketching looks like.",
+      "on_screen": "DAY 1 VS DAY 200",
+      "first_visual": "The finished result fills the frame before anything else.",
+      "best_for": "Transformation, skill and progress content. The result is the hook and the video earns it backwards.",
+      "trap": "A result that is not visibly different from the start. If the change needs explaining, pick another formula.",
+      "match": "\\bthis is what\\b[^.!?]{0,50}\\blooks? like\\b|\\bday (?:1|one)\\b[^.!?]{0,20}\\b(?:vs|versus|to)\\b"
+    },
+    {
+      "id": 5,
+      "name": "The Typed Question",
+      "template": "How do you {the exact phrase people search}? Like this.",
+      "example": "How do you get candle wax out of a carpet? Like this.",
+      "on_screen": "WAX OUT OF CARPET",
+      "first_visual": "The problem itself: the wax stain, close.",
+      "best_for": "Search. The spoken question mirrors what people type into TikTok search, so the video answers a real query.",
+      "trap": "A question nobody types. Check it against search suggestions first, which is what /tt-seo is for.",
+      "match": "^\\s*(?:how (?:do|can|to|does|did)|why (?:do|does|is|are)|what (?:happens|is the)|can you|is it)\\b[^?]{3,80}\\?"
+    },
+    {
+      "id": 6,
+      "name": "Numbered Lessons",
+      "template": "{N} {things} I {learned / wish I knew} after {specific experience}.",
+      "example": "Four things I check before signing any apartment lease.",
+      "on_screen": "4 LEASE CHECKS",
+      "first_visual": "The lease on a table, a pen already pointing at clause one.",
+      "best_for": "Saveable advice. The number tells the viewer how long the commitment is.",
+      "trap": "A number too big to deliver in the length. Seven points in 30 seconds is a list read too fast to remember.",
+      "match": "^\\s*(?:\\d+|two|three|four|five|six|seven|eight|nine|ten)\\s+(?:\\w+\\s+){0,3}?(?:things|ways|mistakes|tips|rules|signs|questions|checks|habits|lessons|tools|apps|steps|reasons)\\b"
+    },
+    {
+      "id": 7,
+      "name": "Point of View",
+      "template": "POV: {a specific situation the viewer has been in}.",
+      "example": "POV: you said yes to helping a friend move, and they own a piano.",
+      "on_screen": "POV: THEY OWN A PIANO",
+      "first_visual": "The situation shot from the viewer's eye line.",
+      "best_for": "Relatable comedy and shared experience. The viewer casts themselves in it.",
+      "trap": "A POV so general it describes nobody. The detail at the end of the line is the joke.",
+      "match": "^\\s*pov\\b"
+    },
+    {
+      "id": 8,
+      "name": "Myth Check",
+      "template": "Everyone says {common advice}. I tested it.",
+      "example": "Everyone says you should rinse rice three times. I tested it.",
+      "on_screen": "RINSE RICE? TESTED",
+      "first_visual": "Two bowls side by side, labelled.",
+      "best_for": "Contrarian content with proof. The test is what stops it from being an opinion.",
+      "trap": "Debunking without a test. 'Actually that is wrong' with nothing on screen is just a claim.",
+      "match": "\\beveryone (?:says|thinks|tells you)\\b|\\b(?:is|is a) myth\\b|\\bthat'?s a myth\\b|\\bi tested (?:it|this|that)\\b"
+    },
+    {
+      "id": 9,
+      "name": "I Tried It",
+      "template": "I tried {the thing} for {a set time} so you do not have to.",
+      "example": "I used only a paper planner for 30 days. Here is the honest result.",
+      "on_screen": "30 DAYS, PAPER ONLY",
+      "first_visual": "The planner slammed onto a desk next to a calendar.",
+      "best_for": "Experiments and reviews. The time box sets up a before and after.",
+      "trap": "A result you would have predicted. If nothing surprised you, the video has no turn in it.",
+      "match": "\\bi (?:tried|tested|used only|lived on|ate only|did)\\b[^.!?]{0,40}\\bfor (?:\\d+|a|one|two|three|seven|thirty) (?:days?|weeks?|months?|hours?)\\b"
+    },
+    {
+      "id": 10,
+      "name": "The Ranking",
+      "template": "Ranking every {category} from worst to best.",
+      "example": "Ranking every grocery store frozen pizza from worst to best.",
+      "on_screen": "FROZEN PIZZA TIER LIST",
+      "first_visual": "The full line-up on the counter.",
+      "best_for": "Comments. People defend their favourite, which is engagement you did not ask for.",
+      "trap": "Ranking things you have not tried. The audience can tell.",
+      "match": "\\branking (?:every|all|the)\\b|\\bfrom worst to best\\b|\\bfrom best to worst\\b|\\btier list\\b"
+    },
+    {
+      "id": 11,
+      "name": "Hidden Setting",
+      "template": "There is a {setting / button / feature} in {tool} that {specific benefit}.",
+      "example": "There is a setting on your phone camera that fixes blurry night photos.",
+      "on_screen": "THE NIGHT PHOTO SETTING",
+      "first_visual": "Thumb hovering over the exact menu.",
+      "best_for": "Tech and tool tips. Short, saveable, and easy to verify in the comments.",
+      "trap": "A setting everyone knows about. Check the comments on similar videos first.",
+      "match": "\\bthere'?s an? (?:setting|button|feature|trick|shortcut|option)\\b|\\bthere is an? (?:setting|button|feature|trick|shortcut|option)\\b"
+    },
+    {
+      "id": 12,
+      "name": "Comment Reply",
+      "template": "{Read the viewer's comment out loud}. Fair question. Here is the answer.",
+      "example": "Someone asked if this works on hardwood floors. Watch.",
+      "on_screen": "DOES IT WORK ON HARDWOOD?",
+      "first_visual": "The comment sticker on screen over the new attempt.",
+      "best_for": "Follow-ups and community. TikTok has a native reply-with-video feature, and the comment gives the video a ready-made hook.",
+      "trap": "Replying to a comment that only interests the commenter. Pick questions other people are clearly also asking.",
+      "match": "^\\s*replying to\\b|\\b(?:someone|you guys|a lot of you|you all) asked\\b|\\bin the comments\\b"
+    },
+    {
+      "id": 13,
+      "name": "Side by Side",
+      "template": "{Cheap version} versus {expensive version}. Can you tell which is which?",
+      "example": "A $4 knife versus a $200 knife. Can you tell which is which?",
+      "on_screen": "$4 VS $200",
+      "first_visual": "Both items held up at the same time.",
+      "best_for": "Comparison and buying advice. The viewer plays along before you answer.",
+      "trap": "An obvious answer. If anyone can tell, there is no game.",
+      "match": "\\b(?:vs\\.?|versus)\\b|\\bcan you tell (?:which|the difference)\\b"
+    },
+    {
+      "id": 14,
+      "name": "Warning Sign",
+      "template": "If your {thing} does {specific symptom}, {act now}.",
+      "example": "If your car makes this noise when you brake, do not wait until Monday.",
+      "on_screen": "THIS NOISE = STOP",
+      "first_visual": "The symptom itself, with the sound up.",
+      "best_for": "Expert niches: health, cars, homes, pets. Stakes are built in.",
+      "trap": "Fear without a fix. Give the next step inside the video, or it reads as bait.",
+      "match": "^\\s*if your\\b[^.!?]{0,60}\\b(?:does|makes|looks|starts|smells|sounds|keeps)\\b"
+    },
+    {
+      "id": 15,
+      "name": "Story Drop-In",
+      "template": "My {person} just {did something unexpected}.",
+      "example": "My landlord just texted me a photo of my own front door.",
+      "on_screen": "MY LANDLORD DID WHAT",
+      "first_visual": "The phone screen with the message, or your face reacting to it.",
+      "best_for": "Storytime. The story starts at the strange part and fills in the background later.",
+      "trap": "Starting with the background. 'So last year I moved into a new flat' is the third sentence, not the first.",
+      "match": "^\\s*(?:my|our) \\w+(?: \\w+)? just\\b"
+    },
+    {
+      "id": 16,
+      "name": "Time Box",
+      "template": "{Outcome} in {short specific time}.",
+      "example": "A week of lunches prepped in 40 minutes.",
+      "on_screen": "5 LUNCHES / 40 MIN",
+      "first_visual": "Timer starting, hands already moving.",
+      "best_for": "Recipes, routines, productivity. The time is the promise and the edit proves it.",
+      "trap": "A time that only works with a cut. If the timer jumps, someone will say so.",
+      "match": "\\bin (?:under |about |just )?(?:\\d+|one|two|three|five|ten|fifteen|twenty|thirty|forty|sixty)\\s?(?:seconds|secs|minutes|mins|hours)\\b"
+    },
+    {
+      "id": 17,
+      "name": "Insider Admission",
+      "template": "I'm a {job}, and here is what we {do not tell / notice about} customers.",
+      "example": "I'm a dental hygienist, and here is what I notice in the first ten seconds.",
+      "on_screen": "A HYGIENIST NOTICES THIS",
+      "first_visual": "You in the work setting, uniform or tools visible.",
+      "best_for": "Authority, quickly. The job title is the credibility and the admission is the hook.",
+      "trap": "Claiming a job you do not have, or sharing something that breaks a confidentiality rule. Check before posting.",
+      "match": "^\\s*(?:i'?m|i am|as) an? [^.!?,]{2,40}(?:,\\s*and|,| and)\\s*(?:here'?s|here is|this is|we|i)\\b"
+    },
+    {
+      "id": 18,
+      "name": "Exact Viewer",
+      "template": "If you {very specific situation}, watch this before {decision}.",
+      "example": "If you are about to buy your first used car, watch this before you sign anything.",
+      "on_screen": "BUYING A USED CAR?",
+      "first_visual": "The situation: a car lot, a contract, keys on a desk.",
+      "best_for": "Narrow audiences with a decision coming up. The right viewer feels named.",
+      "trap": "A situation too broad to feel named. 'If you want to save money' names everyone and nobody.",
+      "match": "^\\s*if you(?:'re| are)?\\b[^.!?]{0,60}\\b(?:watch this|before you|you need)\\b"
+    },
+    {
+      "id": 19,
+      "name": "Countdown Stakes",
+      "template": "I have {short time} to {goal with a consequence}.",
+      "example": "I have three hours to fix this before the inspector arrives.",
+      "on_screen": "3 HOURS LEFT",
+      "first_visual": "A clock or a phone with the time showing, then the problem.",
+      "best_for": "Challenge and vlog formats. The deadline creates a reason to stay to the end.",
+      "trap": "A fake deadline. If nothing happens when the time runs out, the stakes were decoration.",
+      "match": "\\bi (?:have|got|only have) (?:\\d+|one|two|three|four|five|ten|twenty|thirty|sixty)\\s?(?:seconds|minutes|hours|days)\\b"
+    },
+    {
+      "id": 20,
+      "name": "Mistake Count",
+      "template": "The {N} mistakes that make your {thing} look {bad outcome}.",
+      "example": "The mistake that makes your homemade bread dense every time.",
+      "on_screen": "WHY YOUR BREAD IS DENSE",
+      "first_visual": "Cutting into the dense loaf.",
+      "best_for": "Problem-aware viewers. They already have the bad result and want the cause.",
+      "trap": "Listing mistakes without showing the fixed version. Show both.",
+      "match": "\\bmistakes? (?:that|which|you'?re|everyone|people|i)\\b|\\bthe (?:\\d+ |one |biggest )?mistakes?\\b"
+    }
+  ],
+  "classify_order": [7, 12, 10, 4, 9, 19, 16, 13, 11, 14, 18, 3, 2, 17, 15, 8, 20, 6, 1, 5]
+}

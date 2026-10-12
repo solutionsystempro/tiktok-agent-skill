@@ -1,0 +1,68 @@
+{
+  "version": "1.0",
+  "license": "Copyright (c) 2026 Ian Ryan Kirk. MIT License.",
+  "total": 100,
+  "note": "Ten items, 100 points, for a TikTok profile. A profile visit usually comes from one video, so the question the profile answers is: is there more of that here, and is it for me. Score honestly; a generous score helps nobody. Field limits and feature availability (bio length, link eligibility, number of pins, playlists) vary by account type and region and were not verified for this pack. Check them in the TikTok app before advising.",
+  "items": [
+    {
+      "id": "name",
+      "points": 10,
+      "full_marks": "The display name carries the person or brand plus the topic in words someone would search: 'Maya | Sourdough for beginners'. The username is short, sayable and matches the name.",
+      "common_fail": "A name alone, a username full of underscores and numbers, or a name that changes every month."
+    },
+    {
+      "id": "bio_promise",
+      "points": 14,
+      "full_marks": "The bio says who the videos are for and what they get, in plain words, in the first line. It fits the short bio field without abbreviations nobody understands.",
+      "common_fail": "A list of identities separated by bars, a quote, or emoji with no words."
+    },
+    {
+      "id": "bio_proof_or_ask",
+      "points": 8,
+      "full_marks": "One piece of proof or one plain ask after the promise: a number you can stand behind, or what to do next ('New bake every Tuesday').",
+      "common_fail": "Nothing after the promise, or three asks competing."
+    },
+    {
+      "id": "link",
+      "points": 8,
+      "full_marks": "If the account can show a link, it goes to one destination that matches the bio. If it cannot, the bio says where to find the user instead of leaving a dead promise.",
+      "common_fail": "'Link below' on an account with no link, or a page of eleven links."
+    },
+    {
+      "id": "pinned",
+      "points": 14,
+      "full_marks": "Pinned videos do different jobs: the best proof, the clearest explanation of what the account is about, and the best introduction to the person. Chosen on purpose, not left as old viral hits that no longer match the account.",
+      "common_fail": "Nothing pinned, or pins from a topic the account no longer covers."
+    },
+    {
+      "id": "niche_consistency",
+      "points": 14,
+      "full_marks": "The last nine videos clearly belong to the same topic family, so a new visitor can predict the next one.",
+      "common_fail": "Three topics in the last nine videos, so the visitor cannot tell what following gets them."
+    },
+    {
+      "id": "cadence",
+      "points": 10,
+      "full_marks": "Posting dates show a steady, sustainable rhythm the creator can keep. Regular beats frequent.",
+      "common_fail": "Five videos in one day, then nothing for three weeks."
+    },
+    {
+      "id": "grid_readability",
+      "points": 8,
+      "full_marks": "Covers have a few words of readable text, so the grid works as a menu at thumbnail size.",
+      "common_fail": "Every cover is a random mid-sentence frame."
+    },
+    {
+      "id": "series",
+      "points": 7,
+      "full_marks": "Recurring formats are named and grouped (a series name in the cover text, or playlists where the account has them), so a visitor can binge one thing.",
+      "common_fail": "Good recurring content with no name, so nobody can find part 2."
+    },
+    {
+      "id": "photo",
+      "points": 7,
+      "full_marks": "A clear face or a simple mark that reads at the small size it is shown at, the same one used on other platforms.",
+      "common_fail": "A wide shot where the face is a few pixels, or a busy logo."
+    }
+  ]
+}
