@@ -1,0 +1,22 @@
+{
+  "name": "tiktok-agent",
+  "description": "Twelve Claude skills for TikTok: three-layer hooks (spoken, on-screen, first visual) scored against 20 formulas, timed scripts, a caption linter that counts UTF-16 units, keyword maps from pasted search suggestions, a manual trend workflow with a snapshot analyser, retention from TikTok Studio exports, a swipe-file ranker, comment reply drafts, repurposing, a profile rubric, a weekly plan and a humanizer. No scraping, nothing posted for you.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Ian Ryan Kirk",
+    "url": "https://github.com/solutionsystempro"
+  },
+  "homepage": "https://github.com/solutionsystempro/tiktok-agent-skill",
+  "repository": "https://github.com/solutionsystempro/tiktok-agent-skill",
+  "license": "MIT",
+  "keywords": [
+    "tiktok",
+    "short-form",
+    "hooks",
+    "captions",
+    "content",
+    "humanizer",
+    "social",
+    "marketing"
+  ]
+}

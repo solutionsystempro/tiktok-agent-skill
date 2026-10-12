@@ -1,0 +1,19 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "tiktok-agent-skill",
+  "description": "The TikTok agent skill pack for Claude",
+  "owner": {
+    "name": "Ian Ryan Kirk",
+    "url": "https://github.com/solutionsystempro"
+  },
+  "plugins": [
+    {
+      "name": "tiktok-agent",
+      "description": "Twelve Claude skills for TikTok, including a three-layer hook scorer, a caption linter, a trend snapshot analyser, a retention reader and a humanizer. No scraping, nothing posted for you.",
+      "source": "./",
+      "version": "1.0.0",
+      "category": "productivity",
+      "homepage": "https://github.com/solutionsystempro/tiktok-agent-skill"
+    }
+  ]
+}
