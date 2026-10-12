@@ -76,10 +76,13 @@ The full field list, header aliases and JSON shapes are in
 
 - **Velocity** between the two most recent snapshots: rank change per day,
   posts and views growth per day and as a percent.
-- **Stage**: emerging, rising, peaking, saturated or fading. The thresholds
-  are printed on every run and every one is a flag (`--rising-pct`,
-  `--peak-pct`, `--fading-pct`, `--saturated-posts`, `--emerging-days`,
-  `--rank-rising`). They are this pack's defaults, not TikTok figures.
+- **Stage**: fading, emerging, rising, saturated, peaking or stalled,
+  checked in that order. Any decline (rank falling, or posts or views
+  shrinking) is fading first. Saturated means high volume with little growth;
+  stalled means flat at low volume. The thresholds are printed on every run
+  and every one is a flag (`--rising-pct`, `--peak-pct`, `--fading-pct`,
+  `--saturated-posts`, `--emerging-days`, `--rank-rising`). They are this
+  pack's defaults, not TikTok figures. Full rules in `schema.md`.
 - **First seen**: the first snapshot date the trend appears in.
 - **Niche fit** 0-100 against `--niche "kw1,kw2"` or the `Niche keywords:`
   line in `~/.claude/tiktok/voice.md` (`--voice` for another path).

@@ -12,7 +12,7 @@ file.
 For each trend (kind + name + region) it reports:
   VELOCITY    rank change and posts / views growth per day between the two
               most recent snapshots
-  STAGE       emerging / rising / peaking / saturated / fading, from growth
+  STAGE       emerging / rising / peaking / saturated / stalled / fading, from growth
               thresholds that are printed with every run and can be changed
   FIRST SEEN  the earliest snapshot date it appears in
   NICHE FIT   0-100 against your niche keywords (--niche, or the
@@ -75,8 +75,8 @@ THRESHOLDS = {
     "emerging_days": 7,         # rising and first seen within this many days of the latest snapshot
     "rank_rising": 1.0,         # rank-only data: places climbed per day for rising
 }
-STAGE_WEIGHT = {"emerging": 4, "rising": 3, "peaking": 2, "saturated": 1, "fading": 0,
-                "one snapshot": 1}
+STAGE_WEIGHT = {"emerging": 4, "rising": 3, "peaking": 2, "saturated": 1, "stalled": 1,
+                "fading": 0, "one snapshot": 1}
 
 
 def norm_header(h):
@@ -302,25 +302,32 @@ def growth_pct(prev, last, days):
     return (last - prev) / prev * 100 / days
 
 
-def stage_for(g, rank_per_day, posts, first_seen, latest, t):
-    """Stage from growth % per day g (posts, else views), else from rank."""
+def stage_for(g, rank_per_day, posts, first_seen, latest, t, views_g=None):
+    """Stage from growth % per day g (posts, else views), else from rank.
+
+    Order matters. Any decline is checked first: a rank falling by at least
+    rank_rising places a day, or posts or views shrinking faster than
+    fading_pct, is "fading" whatever the other numbers say. Only then growth:
+    rising / emerging, then saturated (high volume, below the rising line),
+    peaking (slowing growth), and stalled (flat at low volume)."""
+    if g is None and rank_per_day is None:
+        return None
+    if rank_per_day is not None and rank_per_day <= -t["rank_rising"]:
+        return "fading"
+    if any(x is not None and x < t["fading_pct"] for x in (g, views_g)):
+        return "fading"
+    new = (latest - first_seen).days <= t["emerging_days"]
     if g is not None:
-        if g < t["fading_pct"]:
-            return "fading"
         if g >= t["rising_pct"]:
-            return "emerging" if (latest - first_seen).days <= t["emerging_days"] else "rising"
+            return "emerging" if new else "rising"
         if posts is not None and posts >= t["saturated_posts"]:
             return "saturated"
         if g >= t["peak_pct"]:
             return "peaking"
-        return "saturated"
-    if rank_per_day is not None:
-        if rank_per_day >= t["rank_rising"]:
-            return "emerging" if (latest - first_seen).days <= t["emerging_days"] else "rising"
-        if rank_per_day <= -t["rank_rising"]:
-            return "fading"
-        return "peaking"
-    return None
+        return "stalled"
+    if rank_per_day >= t["rank_rising"]:
+        return "emerging" if new else "rising"
+    return "peaking"
 
 
 def analyse(rows, keywords=None, thresholds=None):
@@ -359,7 +366,8 @@ def analyse(rows, keywords=None, thresholds=None):
             g = item["posts_growth_pct"] if item["posts_growth_pct"] is not None \
                 else item["views_growth_pct"]
             item["stage"] = stage_for(g, item["rank_change_per_day"], last["posts"],
-                                      dates[0], latest, t) or "one snapshot"
+                                      dates[0], latest, t,
+                                      views_g=item["views_growth_pct"]) or "one snapshot"
             item["velocity"] = f"over {days} day(s), {dates[-2]} to {dates[-1]}"
             if item["stage"] == "one snapshot":
                 item["velocity"] = "no comparable rank, posts or views between snapshots"
@@ -410,10 +418,11 @@ def by_kind(a, kind_filter=None, top=10):
 
 
 def threshold_line(t):
-    return (f"rising >= {t['rising_pct']}%/day, peaking >= {t['peak_pct']}%/day, fading < "
-            f"{t['fading_pct']}%/day, saturated at {fmt(t['saturated_posts'])}+ posts or flat, "
-            f"emerging = rising and first seen within {t['emerging_days']} days, rank-only "
-            f"rising >= {t['rank_rising']} places/day")
+    return (f"fading first: rank down >= {t['rank_rising']} places/day or posts/views < "
+            f"{t['fading_pct']}%/day; then rising >= {t['rising_pct']}%/day (emerging if first "
+            f"seen within {t['emerging_days']} days), saturated = {fmt(t['saturated_posts'])}+ "
+            f"posts below rising, peaking >= {t['peak_pct']}%/day, stalled = flat at lower "
+            f"volume; rank-only rising >= {t['rank_rising']} places/day")
 
 
 def render(a, kind_filter=None, top=10, out=sys.stdout):

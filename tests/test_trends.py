@@ -75,8 +75,8 @@ class StageTest(unittest.TestCase):
         self.assertEqual(stage(t["rising_pct"], age_days=t["emerging_days"] + 1), "rising")
         self.assertEqual(stage(t["rising_pct"] - 0.01), "peaking")
         self.assertEqual(stage(t["peak_pct"]), "peaking")
-        self.assertEqual(stage(t["peak_pct"] - 0.01), "saturated")
-        self.assertEqual(stage(t["fading_pct"]), "saturated")
+        self.assertEqual(stage(t["peak_pct"] - 0.01), "stalled")
+        self.assertEqual(stage(t["fading_pct"]), "stalled")
         self.assertEqual(stage(t["fading_pct"] - 0.01), "fading")
 
     def test_saturated_by_post_count(self):
@@ -91,6 +91,40 @@ class StageTest(unittest.TestCase):
         self.assertEqual(stage(rank=-1.0), "fading")
         self.assertEqual(stage(rank=0.5), "peaking")
         self.assertIsNone(stage())
+
+    def test_falling_rank_with_flat_posts_is_fading(self):
+        # Regression: rank 12 -> 30 in a week, posts 2000 -> 2100, views flat.
+        text = ("captured_at,kind,name,rank,posts,views\n"
+                "2026-10-01,sound,Slow song,12,2000,50000\n"
+                "2026-10-08,sound,Slow song,30,2100,50000\n")
+        x = trends.analyse(rows(text))["trends"][0]
+        self.assertEqual(x["rank_change_per_day"], -2.57)
+        self.assertEqual(x["posts_growth_pct"], round(5 / 7, 2))
+        self.assertEqual(x["stage"], "fading")
+        self.assertEqual(stage(0.7, rank=-2.57, posts=2100), "fading")
+        self.assertEqual(stage(0.7, rank=-trends.THRESHOLDS["rank_rising"]), "fading")
+        self.assertEqual(stage(0.7, rank=-0.5, posts=2100), "stalled")
+
+    def test_falling_views_with_flat_posts_is_fading(self):
+        self.assertEqual(trends.stage_for(0.5, None, 2100, *self._dates(),
+                                          trends.THRESHOLDS, views_g=-3.0), "fading")
+
+    def test_high_volume_flat_is_saturated(self):
+        t = trends.THRESHOLDS
+        self.assertEqual(stage(0.2, posts=t["saturated_posts"] * 2), "saturated")
+        self.assertEqual(stage(0.0, rank=0.0, posts=t["saturated_posts"]), "saturated")
+
+    def test_low_volume_flat_is_stalled(self):
+        self.assertEqual(stage(0.2, posts=2100), "stalled")
+        self.assertEqual(stage(0.0, posts=None), "stalled")
+        text = ("captured_at,kind,name,posts\n2026-10-01,hashtag,quiet,2000\n"
+                "2026-10-08,hashtag,quiet,2010\n")
+        self.assertEqual(trends.analyse(rows(text))["trends"][0]["stage"], "stalled")
+
+    @staticmethod
+    def _dates():
+        from datetime import date
+        return date(2026, 9, 1), date(2026, 10, 8)
 
     def test_thresholds_are_configurable(self):
         self.assertEqual(stage(4.0), "peaking")

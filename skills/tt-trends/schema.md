@@ -87,20 +87,25 @@ top-level `captured_at` fills rows that lack one), or with `snapshots`:
 
 Growth is percent change per day between the two most recent snapshots of a
 trend, using `posts` if both snapshots have it, otherwise `views`. Defaults,
-each changeable with the flag in brackets:
+each changeable with the flag in brackets. The rules are checked in this
+order and the first match wins:
 
-- **fading**: growth below -1%/day (`--fading-pct`)
-- **emerging**: growth at or above 5%/day (`--rising-pct`) and first seen
-  within 7 days of the latest snapshot (`--emerging-days`)
-- **rising**: growth at or above 5%/day, seen for longer than that
-- **saturated**: 1,000,000 posts or more (`--saturated-posts`) and growth
-  below the rising line, or growth between -1% and 1%/day
-- **peaking**: growth at or above 1%/day (`--peak-pct`) and below the rising
-  line, under the saturated post count
+1. **fading**: the rank fell by at least 1 place per day (`--rank-rising`),
+   or posts or views shrank faster than -1%/day (`--fading-pct`). A decline
+   is checked first, so a falling rank is fading even when posts are flat.
+2. **emerging**: growth at or above 5%/day (`--rising-pct`) and first seen
+   within 7 days of the latest snapshot (`--emerging-days`)
+3. **rising**: growth at or above 5%/day, seen for longer than that
+4. **saturated**: 1,000,000 posts or more (`--saturated-posts`) and growth
+   below the rising line. High volume, little room left.
+5. **peaking**: growth at or above 1%/day (`--peak-pct`), below the rising
+   line, under the saturated post count
+6. **stalled**: growth between -1% and 1%/day under the saturated post
+   count. Flat at low volume; it never took off.
 
-With rank only and no counts: climbing at least 1 place per day
-(`--rank-rising`) is rising or emerging, falling at least that fast is
-fading, anything between is peaking.
+With rank only and no counts: falling at least 1 place per day is fading,
+climbing at least that fast is rising or emerging, anything between is
+peaking.
 
 A trend found in only one snapshot is labelled `one snapshot` and shows "one
 snapshot, no velocity".
